@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "reader.h"
 
 void extract_cpu_data(cpu_data *data)
@@ -5,7 +7,8 @@ void extract_cpu_data(cpu_data *data)
 
     FILE *stat_file;
 
-    stat_file = fopen("test_stat", "r");
+    // stat_file = fopen("test_stat", "r");
+    stat_file = fopen("/proc/stat", "r");
     if (stat_file == NULL)
     {
         fprintf(stderr, "%s", "Could not open file! \n");
@@ -43,8 +46,21 @@ void extract_cpu_data(cpu_data *data)
         getline(&line, &buffer_size, stat_file);
     }
     core->cpu = NULL;
-    // print_cpu_data(data);
     fclose(stat_file);
+}
+
+void free_data_memory(cpu_data *data)
+{   
+    data=data->cpu;
+    cpu_data *tmp = data;
+    while (tmp->cpu != NULL)
+    {
+
+        data = data->cpu;
+        free(tmp);
+        tmp=data;
+        
+    }
 }
 
 void print_cpu_data_single(cpu_data *data)
@@ -80,7 +96,7 @@ void print_cpu_data(cpu_data *data)
         printf("%u\n", ptr->steal);
         printf("%u\n", ptr->guest);
         printf("%u\n", ptr->guest_nice);
-        printf("Ptr: 0x%08x\n", ptr->cpu);
+        printf("Ptr: 0x%08x\n", (unsigned)ptr->cpu);
         ptr = ptr->cpu;
     }
 }

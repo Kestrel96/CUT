@@ -1,38 +1,163 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <signal.h>
 
 #include "reader.h"
+#include "analyzer.h"
+
+volatile sig_atomic_t stop = 0;
+
+cpu_data current_data, previous_data;
+cpu_usage usage;
+
+pthread_mutex_t lock;
+
+sem_t read_semaphore, analyze_semaphore, print_semaphore;
+
+typedef struct arguments arguments;
+struct arguments
+{
+    cpu_data *current_data;
+    cpu_data *previous_data;
+    cpu_usage *usage;
+};
+
+typedef struct thread_helper;
+
+bool updated = false;
+bool printed = true;
+
+void memory_cleanup()
+{
+
+    free_data_memory(&current_data);
+    free_data_memory(&previous_data);
+    free_usage_memory(&usage);
+}
+
+void term(int signum)
+{
+    stop = 1;
+    printf("SIGTERM received!\n");
+}
+
+void *reader_thread(arguments *args)
+{
+
+    while (1)
+    {
+        printf("reader\n");
+        if (stop == 1)
+        {
+            sem_post(&analyze_semaphore);
+            break;
+        }
+        sem_wait(&read_semaphore);
+
+        pthread_mutex_lock(&lock);
+
+        extract_cpu_data(args->current_data);
+        pthread_mutex_unlock(&lock);
+        sem_post(&analyze_semaphore);
+    }
+}
+
+void *analyzer_thread(arguments *args)
+{
+
+    while (1)
+    {
+        printf("Analyzer \n");
+        if (stop == 1)
+        {
+            sem_post(&print_semaphore);
+            break;
+        }
+        sem_wait(&analyze_semaphore);
+
+        pthread_mutex_lock(&lock);
+
+        get_current_usage(args->current_data, args->previous_data, args->usage);
+        pthread_mutex_unlock(&lock);
+        sem_post(&print_semaphore);
+    }
+}
+
+void *printer_thread(arguments *args)
+{
+
+    while (1)
+    {
+
+        if (stop == 1)
+        {
+            sem_post(&read_semaphore);
+            break;
+        }
+        sem_wait(&print_semaphore);
+        pthread_mutex_lock(&lock);
+
+        print_usage(args->usage);
+        printed = true;
+        pthread_mutex_unlock(&lock);
+        sleep(1);
+        sem_post(&read_semaphore);
+    }
+}
 
 int main()
 {
 
-    printf("CUT\n");
-    extract_cpu_data();
-    // printf("CUT after\n");
-    
-    // cpu_data cpu;
+    struct sigaction action;
+    memset(&action, 0, sizeof(struct sigaction));
+    action.sa_handler = term;
+    sigaction(SIGTERM, &action, NULL);
 
-    // FILE *stat_file;
+    arguments args;
+    args.current_data = &current_data;
+    args.previous_data = &previous_data;
+    args.usage = &usage;
+    updated = false;
 
-    // stat_file = fopen("test_stat", "r");
-    // if (stat_file == NULL)
-    // {
-    //     fprintf(stderr, "%s", "Could not open file! \n");
-    // }
+    extract_cpu_data(&current_data);
+    init(&current_data, &previous_data, &usage);
 
-    // char *line;
-    // size_t buffer_size = 100;
-    // line = (char *)malloc(buffer_size * sizeof(char));
-    // getline(&line, &buffer_size, stat_file);
+    free_usage_memory(&usage);
 
-    // char *buffer = "cpu  1436925 3421 702440 337023946 24231 0 79232 0 0 0";
-    // char store_value[10];
-    // int total_read;
+    pthread_t reader, analyzer, printer;
 
-    // printf("%s\n",line);
-    // total_read = sscanf(line, "%s %u", cpu.name,&cpu.user);
+    sem_init(&read_semaphore, 0, 1);
+    sem_init(&analyze_semaphore, 0, 0);
+    sem_init(&print_semaphore, 0, 0);
 
-    // printf("Value in buffer: %s %u", cpu.name,cpu.user);
-    // printf("\nTotal items read: %d", total_read);
+    pthread_create(&analyzer, NULL, analyzer_thread, (void *)&args);
+    pthread_create(&printer, NULL, printer_thread, (void *)&args);
+    pthread_create(&reader, NULL, reader_thread, (void *)&args);
+
+    while (1)
+    {
+        sleep(5);
+        if (stop == 1)
+        {
+            printf("Waiting for threads to finish...\n");
+            sem_post(&print_semaphore);
+            pthread_join(&printer, NULL);
+            sem_post(&read_semaphore);
+            pthread_join(&reader, NULL);
+            sem_post(&analyze_semaphore);
+            pthread_join(&analyzer, NULL);
+            printf("Threads finished...\n");
+            sem_destroy(&read_semaphore);
+            sem_destroy(&analyze_semaphore);
+            sem_destroy(&print_semaphore);
+            printf("Semaphores destroyed...\n");
+            memory_cleanup();
+            printf("Memory freed...\n");
+            exit(0);
+        }
+    }
 
     return 0;
 }
