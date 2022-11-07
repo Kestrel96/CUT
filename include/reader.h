@@ -1,3 +1,6 @@
+#ifndef READER_H
+#define READER_H
+
 #include <stdio.h>
 #include <string.h>
 
@@ -24,6 +27,8 @@ struct s_cpu_data
 
 
 
-void extract_cpu_data();
+void extract_cpu_data(cpu_data* data);
 
 void print_cpu_data(cpu_data* data);
+void print_cpu_data_single(cpu_data* data);
+#endif /*READER_H*/

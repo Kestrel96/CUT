@@ -43,7 +43,6 @@ void extract_cpu_data(cpu_data *data)
         getline(&line, &buffer_size, stat_file);
     }
     core->cpu = NULL;
-    // print_cpu_data(data);
     fclose(stat_file);
 }
 
