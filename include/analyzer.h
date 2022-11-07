@@ -16,7 +16,7 @@ struct s_cpu_usage
 void get_usage(cpu_data *data, cpu_usage *usage, cpu_usage *previous_usage);
 void init(cpu_data *data, cpu_data *previous_data, cpu_usage *usage);
 void get_current_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage);
-void print_usage(cpu_usage* usage);
-
+void print_usage(cpu_usage *usage);
+void free_usage_memory(cpu_usage *usage);
 
 #endif /*ANALYZER_H*/

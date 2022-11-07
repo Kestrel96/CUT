@@ -24,7 +24,7 @@ struct s_cpu_data
 };
 
 void extract_cpu_data(cpu_data *data);
-
 void print_cpu_data(cpu_data *data);
 void print_cpu_data_single(cpu_data *data);
+void free_data_memory(cpu_data* data);
 #endif /*READER_H*/

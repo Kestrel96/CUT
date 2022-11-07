@@ -87,8 +87,7 @@ void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_u
             return;
         }
 
-
-        current_usage->usage = (float) (d_total - d_idle)/ d_total * 100;
+        current_usage->usage = (float)(d_total - d_idle) / d_total * 100;
         current_usage->cpu_no = count;
         count++;
         data = data->cpu;
@@ -102,11 +101,27 @@ void set_previous(cpu_data *current, cpu_data *previous)
 {
 
     cpu_data *ptr = current;
+    cpu_data *prev_ptr=previous;
     while (ptr->cpu != NULL)
     {
-        memcpy(previous, current, sizeof(cpu_data));
+        
+
+        memcpy(previous->name,current->name,6);
+        previous->user = current->user;
+        previous->nice = current->nice;
+        previous->system = current->system;
+        previous->idle = current->idle;
+        previous->iowait = current->iowait;
+        previous->irq = current->irq;
+        previous->softirq = current->softirq;
+        previous->steal = current->steal;
+        previous->guest = current->guest;
+        previous->guest_nice = current->guest_nice;
+        
         ptr = ptr->cpu;
+        previous=previous->cpu;
     }
+    previous=prev_ptr;
 }
 
 void print_usage(cpu_usage *usage)
@@ -123,4 +138,17 @@ void print_usage(cpu_usage *usage)
         ptr = ptr->next_cpu;
     }
     printf("\n");
+}
+
+void free_usage_memory(cpu_usage *usage)
+{
+
+    usage = usage->next_cpu;
+    cpu_usage *tmp = usage;
+    while (tmp->next_cpu != NULL)
+    {
+        usage = usage->next_cpu;
+        free(tmp);
+        tmp = usage;
+    }
 }

@@ -7,7 +7,7 @@ void extract_cpu_data(cpu_data *data)
 
     FILE *stat_file;
 
-    //stat_file = fopen("test_stat", "r");
+    // stat_file = fopen("test_stat", "r");
     stat_file = fopen("/proc/stat", "r");
     if (stat_file == NULL)
     {
@@ -47,6 +47,20 @@ void extract_cpu_data(cpu_data *data)
     }
     core->cpu = NULL;
     fclose(stat_file);
+}
+
+void free_data_memory(cpu_data *data)
+{   
+    data=data->cpu;
+    cpu_data *tmp = data;
+    while (tmp->cpu != NULL)
+    {
+
+        data = data->cpu;
+        free(tmp);
+        tmp=data;
+        
+    }
 }
 
 void print_cpu_data_single(cpu_data *data)
