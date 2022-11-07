@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
 
 typedef struct s_cpu_data cpu_data;
 
