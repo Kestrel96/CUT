@@ -1,10 +1,14 @@
+#include <stdlib.h>
+
 #include "analyzer.h"
 
-void init(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
+void init(cpu_data *data, cpu_data *previous_data, cpu_usage *usage)
 {
 
     cpu_data *ptr = data;
+    cpu_usage *u_ptr = usage;
     cpu_data *previous_ptr = previous_data;
+    unsigned count = 0;
     while (ptr->cpu != NULL)
     {
         strcpy(previous_data->name, ptr->name);
@@ -19,19 +23,38 @@ void init(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
         previous_data->guest = 0;
         previous_data->guest_nice = 0;
         previous_data->cpu = (cpu_data *)malloc(sizeof(cpu_data));
+
+        usage->cpu_no = count;
+        usage->usage = 0;
+        usage->next_cpu = (cpu_usage *)malloc(sizeof(cpu_usage));
+        count++;
+
         previous_data = previous_data->cpu;
+        usage = usage->next_cpu;
         ptr = ptr->cpu;
     }
-    previous_data->cpu=NULL;
+    previous_data->cpu = NULL;
+    usage->next_cpu = NULL;
 
     previous_data = previous_ptr;
+    usage = u_ptr;
 }
 
-void get_current_usage(cpu_data *data, cpu_usage *current_usage, cpu_usage *previous_usage)
+void get_current_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
 {
     static bool first = true;
 
-    first = false;
+    if (first == true)
+    {
+
+        init(data, previous_data, current_usage);
+        first = false;
+        set_previous(data, previous_data);
+        return;
+    }
+
+    extract_usage(data, previous_data, current_usage);
+    set_previous(data, previous_data);
 }
 
 void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
@@ -44,26 +67,60 @@ void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_u
     while (data->cpu != NULL)
     {
 
-        unsigned prev_idle = previous_data->idle + previous_data->iowait;
-        unsigned current_idle = data->idle + data->iowait;
+        int prev_idle = previous_data->idle + previous_data->iowait;
+        int current_idle = data->idle + data->iowait;
 
-        unsigned prev_non_idle = previous_data->user + previous_data->nice + previous_data->system +
-                                 previous_data->irq + previous_data->softirq + previous_data->steal;
+        int prev_non_idle = previous_data->user + previous_data->nice + previous_data->system +
+                            previous_data->irq + previous_data->softirq + previous_data->steal;
 
-        unsigned current_non_idle = data->user + data->nice + data->system +
-                                    data->irq + data->softirq + data->steal;
+        int current_non_idle = data->user + data->nice + data->system +
+                               data->irq + data->softirq + data->steal;
 
-        unsigned prev_total = prev_idle + prev_non_idle;
-        unsigned current_total = current_idle + current_non_idle;
+        int prev_total = prev_idle + prev_non_idle;
+        int current_total = current_idle + current_non_idle;
 
-        unsigned d_total = current_total - prev_total;
-        unsigned d_idle = current_idle - prev_idle;
+        int d_total = current_total - prev_total;
+        int d_idle = current_idle - prev_idle;
 
-        current_usage->usage = (float)(d_total - d_idle) / d_total;
-        current_usage = current_usage->next_cpu;
+        if (d_total == 0)
+        {
+            return;
+        }
+
+
+        current_usage->usage = (float) (d_total - d_idle)/ d_total * 100;
         current_usage->cpu_no = count;
         count++;
         data = data->cpu;
+        current_usage = current_usage->next_cpu;
+
         previous_data = data->cpu;
     }
+}
+
+void set_previous(cpu_data *current, cpu_data *previous)
+{
+
+    cpu_data *ptr = current;
+    while (ptr->cpu != NULL)
+    {
+        memcpy(previous, current, sizeof(cpu_data));
+        ptr = ptr->cpu;
+    }
+}
+
+void print_usage(cpu_usage *usage)
+{
+    cpu_usage *ptr = usage;
+    printf("CPU  ", ptr->cpu_no);
+    printf("Load: %f%%\n", ptr->usage);
+    ptr = ptr->next_cpu;
+
+    while (ptr->next_cpu != NULL)
+    {
+        printf("CPU%u ", ptr->cpu_no);
+        printf("Load: %f%%\n", ptr->usage);
+        ptr = ptr->next_cpu;
+    }
+    printf("\n");
 }

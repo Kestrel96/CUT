@@ -4,31 +4,26 @@
 #include <stdio.h>
 #include <string.h>
 
-
 typedef struct s_cpu_data cpu_data;
 
 struct s_cpu_data
 {
     char name[6];
-    unsigned user;
-    unsigned nice;
-    unsigned system;
-    unsigned idle;
-    unsigned iowait;
-    unsigned irq;
-    unsigned softirq;
-    unsigned steal;
-    unsigned guest;
-    unsigned guest_nice;
-    cpu_data* cpu;
-
+    int user;
+    int nice;
+    int system;
+    int idle;
+    int iowait;
+    int irq;
+    int softirq;
+    int steal;
+    int guest;
+    int guest_nice;
+    cpu_data *cpu;
 };
 
+void extract_cpu_data(cpu_data *data);
 
-
-
-void extract_cpu_data(cpu_data* data);
-
-void print_cpu_data(cpu_data* data);
-void print_cpu_data_single(cpu_data* data);
+void print_cpu_data(cpu_data *data);
+void print_cpu_data_single(cpu_data *data);
 #endif /*READER_H*/
