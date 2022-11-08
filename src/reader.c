@@ -25,7 +25,7 @@ void extract_cpu_data(cpu_data *data)
 
     /*CPU combined (first line of stat)*/
     getline(&line, &buffer_size, stat_file);
-    int success = sscanf(line, "%s %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu",
+    int success = sscanf(line, "%s %u %u %u %u %u %u %u %u %u %u",
                          data->name, &data->user, &data->nice, &data->system, &data->idle,
                          &data->iowait, &data->irq, &data->softirq, &data->steal,
                          &data->guest, &data->guest_nice);
@@ -43,7 +43,7 @@ void extract_cpu_data(cpu_data *data)
     while (line[0] == 'c')
     {
 
-        success = sscanf(line, "%s %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu",
+        success = sscanf(line, "%s %u %u %u %u %u %u %u %u %u %u",
                          core->name, &core->user, &core->nice, &core->system, &core->idle,
                          &core->iowait, &core->irq, &core->softirq, &core->steal,
                          &core->guest, &core->guest_nice);
@@ -83,16 +83,16 @@ void print_cpu_data_single(cpu_data *data,int cpu_no)
         ptr=ptr->cpu;
     }
     printf("%s ", ptr->name);
-    printf("%lu ", ptr->user);
-    printf("%lu ", ptr->nice);
-    printf("%lu ", ptr->system);
-    printf("%lu ", ptr->idle);
-    printf("%lu ", ptr->iowait);
-    printf("%lu ", ptr->irq);
-    printf("%lu ", ptr->softirq);
-    printf("%lu ", ptr->steal);
-    printf("%lu ", ptr->guest);
-    printf("%lu \n", ptr->guest_nice);
+    printf("%u ", ptr->user);
+    printf("%u ", ptr->nice);
+    printf("%u ", ptr->system);
+    printf("%u ", ptr->idle);
+    printf("%u ", ptr->iowait);
+    printf("%u ", ptr->irq);
+    printf("%u ", ptr->softirq);
+    printf("%u ", ptr->steal);
+    printf("%u ", ptr->guest);
+    printf("%u \n", ptr->guest_nice);
 }
 
 void print_cpu_data(cpu_data *data)
@@ -102,16 +102,16 @@ void print_cpu_data(cpu_data *data)
     while (ptr->cpu != NULL)
     {
         printf("%s ", ptr->name);
-        printf("%lu ", ptr->user);
-        printf("%lu ", ptr->nice);
-        printf("%lu ", ptr->system);
-        printf("%lu ", ptr->idle);
-        printf("%lu ", ptr->iowait);
-        printf("%lu ", ptr->irq);
-        printf("%lu ", ptr->softirq);
-        printf("%lu ", ptr->steal);
-        printf("%lu ", ptr->guest);
-        printf("%lu \n", ptr->guest_nice);
+        printf("%u ", ptr->user);
+        printf("%u ", ptr->nice);
+        printf("%u ", ptr->system);
+        printf("%u ", ptr->idle);
+        printf("%u ", ptr->iowait);
+        printf("%u ", ptr->irq);
+        printf("%u ", ptr->softirq);
+        printf("%u ", ptr->steal);
+        printf("%u ", ptr->guest);
+        printf("%u \n", ptr->guest_nice);
         //printf("Ptr: 0x%08x\n", (unsigned)ptr->cpu);
         ptr = ptr->cpu;
     }
