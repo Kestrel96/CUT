@@ -21,7 +21,7 @@ void extract_cpu_data(cpu_data *data)
     size_t buffer_size = 100;
     line = (char *)malloc(buffer_size * sizeof(char));
 
-    cpu_data *core, prev_core;
+    cpu_data *core;
 
     /*CPU combined (first line of stat)*/
     getline(&line, &buffer_size, stat_file);

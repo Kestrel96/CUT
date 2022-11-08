@@ -108,6 +108,8 @@ void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_u
 
         previous_data = data->cpu;
     }
+    data=ptr;
+    previous_data=prev_ptr;
 }
 
 void get_current_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)

@@ -10,7 +10,7 @@ set(TEST_DIR ./test)
 aux_source_directory(${SRC_DIR} SRC)
 aux_source_directory(${TEST_DIR} TEST)
 include_directories(${INC_DIR})
-add_compile_options(-g)
+add_compile_options(-g -Wall -Wextra)
 
 add_link_options(-pthread)
 
