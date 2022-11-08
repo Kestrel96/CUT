@@ -1,9 +1,9 @@
 #include <stdio.h>
+#include <signal.h>
 
-#include"threads.h"
+#include "threads.h"
 #include "reader.h"
 #include "analyzer.h"
-
 
 extern volatile sig_atomic_t stop;
 extern bool updated;
@@ -12,7 +12,6 @@ extern pthread_mutex_t lock, wlock;
 
 cpu_data current_data, previous_data;
 cpu_usage usage;
-
 
 void memory_cleanup()
 {
@@ -26,7 +25,6 @@ void term()
 {
     stop = 1;
 }
-
 
 int main()
 {

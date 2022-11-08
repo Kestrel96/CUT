@@ -1,8 +1,7 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "analyzer.h"
-
-
 
 void init(cpu_data *data, cpu_data *previous_data, cpu_usage *usage)
 {
@@ -42,32 +41,30 @@ void init(cpu_data *data, cpu_data *previous_data, cpu_usage *usage)
     usage = u_ptr;
 }
 
-
 void set_previous(cpu_data *current, cpu_data *previous)
 {
 
     cpu_data *ptr = current;
-    cpu_data *prev_ptr=previous;
+    cpu_data *prev_ptr = previous;
     while (ptr->cpu != NULL)
     {
-        
 
-        memcpy(previous->name,current->name,6);
-        previous->user = current->user;
-        previous->nice = current->nice;
-        previous->system = current->system;
-        previous->idle = current->idle;
-        previous->iowait = current->iowait;
-        previous->irq = current->irq;
-        previous->softirq = current->softirq;
-        previous->steal = current->steal;
-        previous->guest = current->guest;
-        previous->guest_nice = current->guest_nice;
-        
+        memcpy(previous->name, ptr->name, 6);
+        previous->user = ptr->user;
+        previous->nice = ptr->nice;
+        previous->system = ptr->system;
+        previous->idle = ptr->idle;
+        previous->iowait = ptr->iowait;
+        previous->irq = ptr->irq;
+        previous->softirq = ptr->softirq;
+        previous->steal = ptr->steal;
+        previous->guest = ptr->guest;
+        previous->guest_nice = ptr->guest_nice;
+
         ptr = ptr->cpu;
-        previous=previous->cpu;
+        previous = previous->cpu;
     }
-    previous=prev_ptr;
+    previous = prev_ptr;
 }
 
 void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
@@ -83,6 +80,7 @@ void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_u
         int prev_idle = previous_data->idle + previous_data->iowait;
         int current_idle = data->idle + data->iowait;
 
+
         int prev_non_idle = previous_data->user + previous_data->nice + previous_data->system +
                             previous_data->irq + previous_data->softirq + previous_data->steal;
 
@@ -95,21 +93,24 @@ void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_u
         int d_total = current_total - prev_total;
         int d_idle = current_idle - prev_idle;
 
-        if (d_total == 0)
+        if (d_total != 0)
         {
-            return;
+            current_usage->usage = (float)(d_total - d_idle) / d_total * 100;
+        }
+        else{
+            current_usage->usage=0;
         }
 
-        current_usage->usage = (float)(d_total - d_idle) / d_total * 100;
+        
         current_usage->cpu_no = count;
         count++;
-        data = data->cpu;
-        current_usage = current_usage->next_cpu;
 
-        previous_data = data->cpu;
+        data = data->cpu;
+        previous_data = previous_data->cpu;
+        current_usage = current_usage->next_cpu;
     }
-    data=ptr;
-    previous_data=prev_ptr;
+    data = ptr;
+    previous_data = prev_ptr;
 }
 
 void get_current_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
@@ -120,15 +121,18 @@ void get_current_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *curre
     {
 
         init(data, previous_data, current_usage);
+        
         first = false;
+        extract_usage(data, previous_data, current_usage);
         set_previous(data, previous_data);
+
+        
         return;
     }
 
     extract_usage(data, previous_data, current_usage);
     set_previous(data, previous_data);
 }
-
 
 void print_usage(cpu_usage *usage)
 {
@@ -140,7 +144,7 @@ void print_usage(cpu_usage *usage)
     while (ptr->next_cpu != NULL)
     {
         printf("CPU%u ", ptr->cpu_no);
-        printf("Load: %f%%\n", ptr->usage);
+        printf("Load: %0.2f%%\n", ptr->usage);
         ptr = ptr->next_cpu;
     }
     printf("\n");
