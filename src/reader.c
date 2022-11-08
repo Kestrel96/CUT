@@ -70,20 +70,29 @@ void free_data_memory(cpu_data *data)
     }
 }
 
-void print_cpu_data_single(cpu_data *data)
+void print_cpu_data_single(cpu_data *data,int cpu_no)
 {
 
-    printf("Name: %s\n", data->name);
-    printf("User: %u\n", data->user);
-    printf("%u\n", data->nice);
-    printf("%u\n", data->system);
-    printf("%u\n", data->idle);
-    printf("%u\n", data->iowait);
-    printf("%u\n", data->irq);
-    printf("%u\n", data->softirq);
-    printf("%u\n", data->steal);
-    printf("%u\n", data->guest);
-    printf("%u\n", data->guest_nice);
+    cpu_data* ptr=data;
+    cpu_no=cpu_no-1;
+
+    for(int i=0;i<cpu_no;i++){
+        if(ptr->cpu==NULL){
+            break;
+        }
+        ptr=ptr->cpu;
+    }
+    printf("%s ", ptr->name);
+    printf("%u ", ptr->user);
+    printf("%u ", ptr->nice);
+    printf("%u ", ptr->system);
+    printf("%u ", ptr->idle);
+    printf("%u ", ptr->iowait);
+    printf("%u ", ptr->irq);
+    printf("%u ", ptr->softirq);
+    printf("%u ", ptr->steal);
+    printf("%u ", ptr->guest);
+    printf("%u \n", ptr->guest_nice);
 }
 
 void print_cpu_data(cpu_data *data)
@@ -92,18 +101,18 @@ void print_cpu_data(cpu_data *data)
     cpu_data *ptr = data;
     while (ptr->cpu != NULL)
     {
-        printf("-----------%s-------------\n", ptr->name);
-        printf("User: %u\n", ptr->user);
-        printf("%u\n", ptr->nice);
-        printf("%u\n", ptr->system);
-        printf("%u\n", ptr->idle);
-        printf("%u\n", ptr->iowait);
-        printf("%u\n", ptr->irq);
-        printf("%u\n", ptr->softirq);
-        printf("%u\n", ptr->steal);
-        printf("%u\n", ptr->guest);
-        printf("%u\n", ptr->guest_nice);
-        printf("Ptr: 0x%08x\n", (unsigned)ptr->cpu);
+        printf("%s ", ptr->name);
+        printf("%u ", ptr->user);
+        printf("%u ", ptr->nice);
+        printf("%u ", ptr->system);
+        printf("%u ", ptr->idle);
+        printf("%u ", ptr->iowait);
+        printf("%u ", ptr->irq);
+        printf("%u ", ptr->softirq);
+        printf("%u ", ptr->steal);
+        printf("%u ", ptr->guest);
+        printf("%u \n", ptr->guest_nice);
+        //printf("Ptr: 0x%08x\n", (unsigned)ptr->cpu);
         ptr = ptr->cpu;
     }
 }
