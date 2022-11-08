@@ -2,16 +2,19 @@
 
 #include "reader.h"
 
+#ifndef STAT_PATH
+#define STAT_PATH "/proc/stat"
+#endif
+
 void extract_cpu_data(cpu_data *data)
 {
 
     FILE *stat_file;
-
-    // stat_file = fopen("test_stat", "r");
-    stat_file = fopen("/proc/stat", "r");
+    stat_file = fopen(STAT_PATH, "r");
     if (stat_file == NULL)
     {
-        fprintf(stderr, "%s", "Could not open file! \n");
+        fprintf(stderr, "%s", "Could not open stat file! \n");
+        exit(1);
     }
 
     char *line;
@@ -26,6 +29,11 @@ void extract_cpu_data(cpu_data *data)
                          data->name, &data->user, &data->nice, &data->system, &data->idle,
                          &data->iowait, &data->irq, &data->softirq, &data->steal,
                          &data->guest, &data->guest_nice);
+    if (success != 11)
+    {
+        printf("Error while parsing stat file!\n");
+        exit(2);
+    }
 
     /*individual cores*/
     core = (cpu_data *)malloc(sizeof(cpu_data));
@@ -50,16 +58,15 @@ void extract_cpu_data(cpu_data *data)
 }
 
 void free_data_memory(cpu_data *data)
-{   
-    data=data->cpu;
+{
+    data = data->cpu;
     cpu_data *tmp = data;
     while (tmp->cpu != NULL)
     {
 
         data = data->cpu;
         free(tmp);
-        tmp=data;
-        
+        tmp = data;
     }
 }
 

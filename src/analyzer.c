@@ -2,6 +2,8 @@
 
 #include "analyzer.h"
 
+
+
 void init(cpu_data *data, cpu_data *previous_data, cpu_usage *usage)
 {
 
@@ -40,21 +42,32 @@ void init(cpu_data *data, cpu_data *previous_data, cpu_usage *usage)
     usage = u_ptr;
 }
 
-void get_current_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
+
+void set_previous(cpu_data *current, cpu_data *previous)
 {
-    static bool first = true;
 
-    if (first == true)
+    cpu_data *ptr = current;
+    cpu_data *prev_ptr=previous;
+    while (ptr->cpu != NULL)
     {
+        
 
-        init(data, previous_data, current_usage);
-        first = false;
-        set_previous(data, previous_data);
-        return;
+        memcpy(previous->name,current->name,6);
+        previous->user = current->user;
+        previous->nice = current->nice;
+        previous->system = current->system;
+        previous->idle = current->idle;
+        previous->iowait = current->iowait;
+        previous->irq = current->irq;
+        previous->softirq = current->softirq;
+        previous->steal = current->steal;
+        previous->guest = current->guest;
+        previous->guest_nice = current->guest_nice;
+        
+        ptr = ptr->cpu;
+        previous=previous->cpu;
     }
-
-    extract_usage(data, previous_data, current_usage);
-    set_previous(data, previous_data);
+    previous=prev_ptr;
 }
 
 void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
@@ -66,7 +79,7 @@ void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_u
     unsigned count = 0;
     while (data->cpu != NULL)
     {
-
+        /*taken from propsed answer: https://stackoverflow.com/questions/23367857/accurate-calculation-of-cpu-usage-given-in-percentage-in-linux*/
         int prev_idle = previous_data->idle + previous_data->iowait;
         int current_idle = data->idle + data->iowait;
 
@@ -97,37 +110,28 @@ void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_u
     }
 }
 
-void set_previous(cpu_data *current, cpu_data *previous)
+void get_current_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
 {
+    static bool first = true;
 
-    cpu_data *ptr = current;
-    cpu_data *prev_ptr=previous;
-    while (ptr->cpu != NULL)
+    if (first == true)
     {
-        
 
-        memcpy(previous->name,current->name,6);
-        previous->user = current->user;
-        previous->nice = current->nice;
-        previous->system = current->system;
-        previous->idle = current->idle;
-        previous->iowait = current->iowait;
-        previous->irq = current->irq;
-        previous->softirq = current->softirq;
-        previous->steal = current->steal;
-        previous->guest = current->guest;
-        previous->guest_nice = current->guest_nice;
-        
-        ptr = ptr->cpu;
-        previous=previous->cpu;
+        init(data, previous_data, current_usage);
+        first = false;
+        set_previous(data, previous_data);
+        return;
     }
-    previous=prev_ptr;
+
+    extract_usage(data, previous_data, current_usage);
+    set_previous(data, previous_data);
 }
+
 
 void print_usage(cpu_usage *usage)
 {
     cpu_usage *ptr = usage;
-    printf("CPU  ", ptr->cpu_no);
+    printf("CPU  ");
     printf("Load: %f%%\n", ptr->usage);
     ptr = ptr->next_cpu;
 

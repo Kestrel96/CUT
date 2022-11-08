@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <stdlib.h>
 #include <signal.h>
 
 #include "reader.h"
@@ -53,6 +54,10 @@ void *watchdog_thread()
 {
     while (1)
     {
+        if (stop == 1)
+        {
+            break;
+        }
         struct timespec timeout;
         clock_gettime(CLOCK_REALTIME, &timeout);
         timeout.tv_sec += WATCHDOG_TIMEOUT;
@@ -166,12 +171,13 @@ int main()
     sem_init(&read_semaphore, 0, 1);
     sem_init(&analyze_semaphore, 0, 0);
     sem_init(&print_semaphore, 0, 0);
+    /*Make sure at least 2 threads posted the semaphore for watchdog*/
     sem_init(&watchdog_semaphore, 0, -1);
 
-    pthread_create(&analyzer, NULL, analyzer_thread, (void *)&args);
-    pthread_create(&printer, NULL, printer_thread, (void *)&args);
-    pthread_create(&reader, NULL, reader_thread, (void *)&args);
-    pthread_create(&watchdog, NULL, watchdog_thread, NULL);
+    pthread_create(&analyzer, NULL, (void *)analyzer_thread, (void *)&args);
+    pthread_create(&printer, NULL, (void *)printer_thread, (void *)&args);
+    pthread_create(&reader, NULL, (void *)reader_thread, (void *)&args);
+    pthread_create(&watchdog, NULL, (void *)watchdog_thread, NULL);
 
     while (1)
     {
@@ -181,17 +187,18 @@ int main()
             printf("SIGTERM received!\n");
             printf("Waiting for threads to finish...\n");
             sem_post(&print_semaphore);
-            pthread_join(&printer, NULL);
+            pthread_join(printer, NULL);
             sem_post(&read_semaphore);
-            pthread_join(&reader, NULL);
+            pthread_join(reader, NULL);
             sem_post(&analyze_semaphore);
-            pthread_join(&analyzer, NULL);
+            pthread_join(analyzer, NULL);
             printf("Threads finished...\n");
             sem_destroy(&read_semaphore);
             sem_destroy(&analyze_semaphore);
             sem_destroy(&print_semaphore);
-            printf("Semaphores destroyed...\n");
             pthread_mutex_destroy(&lock);
+            pthread_mutex_destroy(&wlock);
+            printf("Semaphores and mutexes destroyed...\n");
             memory_cleanup();
             printf("Memory freed...\n");
             exit(0);
