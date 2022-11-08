@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <unistd.h>
 
 #include"threads.h"
 #include "reader.h"
