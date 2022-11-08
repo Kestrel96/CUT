@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 
+set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project(CUT)
 enable_testing()
 # set(CMAKE_VERBOSE_MAKEFILE ON)
