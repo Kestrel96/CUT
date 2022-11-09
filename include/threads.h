@@ -9,13 +9,11 @@
 #include "reader.h"
 #include "analyzer.h"
 
-
-
-
-
-
-
 typedef struct arguments arguments;
+/**
+ * @brief Helper structure with pointers do data to be passed to threads.
+ * 
+ */
 struct arguments
 {
     cpu_data *current_data;

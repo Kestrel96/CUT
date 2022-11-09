@@ -45,8 +45,7 @@ int main()
     sem_init(&read_semaphore, 0, 1);
     sem_init(&analyze_semaphore, 0, 0);
     sem_init(&print_semaphore, 0, 0);
-    /*Make sure at least 2 threads posted the semaphore for watchdog*/
-    sem_init(&watchdog_semaphore, 0, -1);
+    sem_init(&watchdog_semaphore, 0, 0);
 
     pthread_create(&analyzer, NULL, (void *)analyzer_thread, (void *)&args);
     pthread_create(&printer, NULL, (void *)printer_thread, (void *)&args);

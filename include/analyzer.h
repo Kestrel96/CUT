@@ -5,6 +5,10 @@
 
 typedef struct s_cpu_usage cpu_usage;
 
+/**
+ * @brief CPU usage struct. Contains core number, usage and pointer to next core.
+ * 
+ */
 struct s_cpu_usage
 {
 

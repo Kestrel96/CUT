@@ -3,6 +3,13 @@
 
 #include "analyzer.h"
 
+/**
+ * @brief Initializes cpu_usage and previous_data structure based on data from parsed current data.
+ * 
+ * @param data Data read for the first time
+ * @param previous_data Structure to be initalized
+ * @param usage Usage structure to be initialized
+ */
 void init(cpu_data *data, cpu_data *previous_data, cpu_usage *usage)
 {
 
@@ -41,6 +48,12 @@ void init(cpu_data *data, cpu_data *previous_data, cpu_usage *usage)
     usage = u_ptr;
 }
 
+/**
+ * @brief Set current data to previous data (for calculating delta)
+ * 
+ * @param current Current data from /proc/stat
+ * @param previous Structure for previous data
+ */
 void set_previous(cpu_data *current, cpu_data *previous)
 {
 
@@ -67,6 +80,13 @@ void set_previous(cpu_data *current, cpu_data *previous)
     previous = prev_ptr;
 }
 
+/**
+ * @brief Calculates usage based on previous and current data from /proc/stat
+ * 
+ * @param data Current data
+ * @param previous_data Previous proc data
+ * @param current_usage Usage struct
+ */
 void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
 {
 
@@ -79,7 +99,6 @@ void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_u
         /*taken from propsed answer: https://stackoverflow.com/questions/23367857/accurate-calculation-of-cpu-usage-given-in-percentage-in-linux*/
         int prev_idle = previous_data->idle + previous_data->iowait;
         int current_idle = data->idle + data->iowait;
-
 
         int prev_non_idle = previous_data->user + previous_data->nice + previous_data->system +
                             previous_data->irq + previous_data->softirq + previous_data->steal;
@@ -97,11 +116,11 @@ void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_u
         {
             current_usage->usage = (float)(d_total - d_idle) / d_total * 100;
         }
-        else{
-            current_usage->usage=0;
+        else
+        {
+            current_usage->usage = 0;
         }
 
-        
         current_usage->cpu_no = count;
         count++;
 
@@ -113,6 +132,13 @@ void extract_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_u
     previous_data = prev_ptr;
 }
 
+/**
+ * @brief Get current usage, set current data to previous. If necessary function initializes previous_data and current_usage lists.
+ * 
+ * @param data Current data
+ * @param previous_data Previous data
+ * @param current_usage Current data regarding CPU utilization
+ */
 void get_current_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *current_usage)
 {
     static bool first = true;
@@ -121,12 +147,11 @@ void get_current_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *curre
     {
 
         init(data, previous_data, current_usage);
-        
+
         first = false;
         extract_usage(data, previous_data, current_usage);
         set_previous(data, previous_data);
 
-        
         return;
     }
 
@@ -134,11 +159,16 @@ void get_current_usage(cpu_data *data, cpu_data *previous_data, cpu_usage *curre
     set_previous(data, previous_data);
 }
 
+/**
+ * @brief Prints foramtted CPU usage.
+ * 
+ * @param usage Usage struct
+ */
 void print_usage(cpu_usage *usage)
 {
     cpu_usage *ptr = usage;
     printf("CPU  ");
-    printf("Load: %f%%\n", ptr->usage);
+    printf("Load: %0.2f%%\n", ptr->usage);
     ptr = ptr->next_cpu;
 
     while (ptr->next_cpu != NULL)
@@ -150,6 +180,11 @@ void print_usage(cpu_usage *usage)
     printf("\n");
 }
 
+/**
+ * @brief Releases allocated memory
+ * 
+ * @param usage Usage struct (head of list)
+ */
 void free_usage_memory(cpu_usage *usage)
 {
 

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.6)
 
 set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_C_COMPILER gcc)
-set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project(CUT)
 enable_testing()
 # set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -14,14 +13,21 @@ aux_source_directory(${SRC_DIR} SRC)
 aux_source_directory(${TEST_DIR} TEST)
 include_directories(${INC_DIR})
 add_compile_options(-g -Wall -Wextra)
-
 add_link_options(-pthread)
 
 add_executable(cut ${SRC})
 
-add_executable(read_test "./src/reader.c" ${TEST})
-target_compile_definitions(read_test PRIVATE STAT_PATH="./xxx")
+## tests
+list(FILTER SRC EXCLUDE REGEX "main.c")
+message(STATUS ${SRC})
+add_executable(read_test "./test/file_read_test.c" ${SRC})
+target_compile_definitions(read_test PRIVATE STAT_PATH="../test/test_proc.txt")
 
 add_test(NAME read_ut COMMAND read_test)
-set_property(TEST read_ut PROPERTY WILL_FAIL true)
 
+
+
+add_executable(watchdog_test  "./test/watchdog_test.c" ${SRC})
+
+add_test(NAME watchdog_ut COMMAND watchdog_test)
+set_property(TEST watchdog_ut PROPERTY WILL_FAIL true)
